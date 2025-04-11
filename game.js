@@ -3,27 +3,25 @@ const ctx = canvas.getContext("2d");
 
 const playerImg = new Image();
 playerImg.src = "img/player.png";
-
 const enemyImg = new Image();
 enemyImg.src = "img/enemy.png";
 
 const bgMusic = new Audio("sounds/bg-music.mp3");
 
+// Música de fondo (loop infinito)
+bgMusic.loop = true;
+bgMusic.volume = 0.5;
 window.addEventListener("keydown", () => {
   if (bgMusic.paused) {
     bgMusic.play();
   }
 });
 
-// Música de fondo (loop infinito)
-bgMusic.loop = true;
-bgMusic.volume = 0.5;
-
 const player = {
   x: canvas.width / 2 - 20,
   y: canvas.height - 60,
-  width: 40,
-  height: 40,
+  width: 60,
+  height: 60,
   speed: 7,
   bullets: [],
 };
@@ -48,8 +46,8 @@ function spawnEnemy() {
   enemies.push({
     x,
     y: 0,
-    width: 40,
-    height: 40,
+    width: 60,
+    height: 60,
     speed: 2 + Math.random() * 2,
   });
 }
