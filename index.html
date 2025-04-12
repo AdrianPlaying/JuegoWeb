@@ -2,27 +2,57 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Shooter 2D</title>
+    <title>Shooter Game</title>
     <style>
       body {
         margin: 0;
-        background: #111;
-        color: #fff;
-        font-family: Arial, sans-serif;
-        text-align: center;
+        padding: 0;
+        background: url("img/escenario.jpg") no-repeat center center fixed;
+        background-size: cover;
+        font-family: "Arial", sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        overflow: hidden;
       }
 
-      canvas {
-        background: #000;
-        display: block;
-        margin: 20px auto;
-        border: 2px solid #fff;
+      .menu {
+        text-align: center;
+        background-color: rgba(0, 0, 0, 0.781);
+        padding: 40px;
+        border-radius: 20px;
+      }
+
+      h1 {
+        color: #fff;
+        font-size: 3rem;
+        margin-bottom: 30px;
+      }
+
+      .play-button {
+        font-size: 1.5rem;
+        padding: 15px 40px;
+        border: none;
+        border-radius: 10px;
+        background-color: red;
+        color: white;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .play-button:hover {
+        background-color: green;
       }
     </style>
   </head>
   <body>
-    <h1></h1>
-    <canvas id="gameCanvas" width="800" height="600"></canvas>
-    <script src="game.js"></script>
+    <div class="menu">
+      <h1>Eng vs Contamination</h1>
+      <audio src="sounds/bg-music.mp3" autoplay loop></audio>
+      <button class="play-button" onclick="window.location.href='game.html'">
+        Play
+      </button>
+    </div>
   </body>
 </html>
