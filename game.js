@@ -1,14 +1,42 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// Ajustar tamaño del canvas a pantalla completa
+function ajustarTamanioCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  // Centrar al jugador
+  player.x = canvas.width / 2 - player.width / 2;
+  player.y = canvas.height - player.height - 30;
+}
+
+window.addEventListener("load", () => {
+  ajustarTamanioCanvas(); // Asegura que el tamaño se ajuste al cargar la página
+});
+window.addEventListener("resize", ajustarTamanioCanvas);
+
 const playerImg = new Image();
-playerImg.src = "img/player.png";
 const enemyImg = new Image();
+playerImg.src = "img/player.png";
 enemyImg.src = "img/enemy.png";
 
-const bgMusic = new Audio("sounds/bg-music.mp3");
+let imagesLoaded = 0;
+const totalImages = 2; // Número total de imágenes que necesitamos cargar
 
-// Música de fondo (loop infinito)
+// Función que se ejecuta cuando las imágenes se cargan
+function checkImagesLoaded() {
+  imagesLoaded++;
+  if (imagesLoaded === totalImages) {
+    console.log("Todas las imágenes se han cargado correctamente");
+    iniciarJuego(); // Inicia el juego cuando todas las imágenes se hayan cargado
+  }
+}
+
+playerImg.onload = checkImagesLoaded;
+enemyImg.onload = checkImagesLoaded;
+
+const bgMusic = new Audio("sounds/bg-music.mp3");
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
 window.addEventListener("keydown", () => {
@@ -38,7 +66,7 @@ function mostrarDialogo() {
   imagen.src = dialogos[indiceDialogo].personaje;
   texto.textContent = dialogos[indiceDialogo].texto;
   contenedor.style.display = "flex";
-  juegoPausado = true; // si tenés una variable de pausa
+  juegoPausado = true;
 }
 
 function mostrarSiguienteDialogo() {
@@ -47,16 +75,14 @@ function mostrarSiguienteDialogo() {
     mostrarDialogo();
   } else {
     document.getElementById("dialogo-container").style.display = "none";
-    juegoPausado = false; // reanudar juego
+    juegoPausado = false;
   }
 }
 
 const imgVida = new Image();
 imgVida.src = "img/vida.png";
-
 const imgPoder = new Image();
 imgPoder.src = "img/poder.png";
-
 const imgEscudo = new Image();
 imgEscudo.src = "img/escudo.png";
 
@@ -66,11 +92,11 @@ const objetos = [
   { tipo: "escudo", imagen: imgEscudo },
 ];
 
-const drops = []; // objetos caídos
+const drops = [];
 
 const player = {
-  x: canvas.width / 2 - 20,
-  y: canvas.height - 90,
+  x: 0,
+  y: 0,
   width: 90,
   height: 90,
   speed: 7,
@@ -83,19 +109,28 @@ const enemies = [];
 let keys = {};
 let enemigosEliminados = 0;
 let dialogoMostrado = false;
+let juegoPausado = false;
 
-// Movimiento y disparos
+let enemyInterval; // Intervalo de enemigos
+
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
   if (e.key === " ") {
     if (player.dobleDisparo) {
-      // Disparo doble: una a la izquierda y otra a la derecha
       player.bullets.push({ x: player.x + 10, y: player.y });
       player.bullets.push({ x: player.x + player.width - 14, y: player.y });
     } else {
-      // Disparo normal
       player.bullets.push({ x: player.x + player.width / 2 - 2, y: player.y });
+    }
+  }
+
+  // Pausar juego al presionar ESC o P
+  if (e.key === "Escape" || e.key === "p") {
+    if (!juegoPausado) {
+      mostrarMenuPausa();
+    } else {
+      ocultarMenuPausa();
     }
   }
 });
@@ -114,23 +149,29 @@ function spawnEnemy() {
   });
 }
 
+function iniciarGeneracionEnemigos() {
+  enemyInterval = setInterval(spawnEnemy, 1000); // Inicia la generación de enemigos
+}
+
+function detenerGeneracionEnemigos() {
+  clearInterval(enemyInterval); // Detiene la generación de enemigos
+}
+
 function update() {
-  // Movimiento jugador
+  if (juegoPausado) return;
+
   if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
   if (keys["ArrowRight"] && player.x + player.width < canvas.width)
     player.x += player.speed;
 
-  // Mover balas
   player.bullets.forEach((bullet, i) => {
     bullet.y -= 10;
     if (bullet.y < 0) player.bullets.splice(i, 1);
   });
 
-  // Mover objetos caídos
   drops.forEach((drop, i) => {
     drop.y += drop.speed;
 
-    // Recoger si toca al jugador
     if (
       drop.x < player.x + player.width &&
       drop.x + drop.width > player.x &&
@@ -141,19 +182,13 @@ function update() {
         player.vidas++;
       } else if (drop.tipo === "poder") {
         player.dobleDisparo = true;
-
-        // Desactivar después de 10 segundos (10000 ms)
         setTimeout(() => {
           player.dobleDisparo = false;
         }, 10000);
-      } else if (drop.tipo === "escudo") {
-        // lógica de escudo, por ejemplo, invulnerabilidad temporal
       }
-
-      drops.splice(i, 1); // quitar el drop recogido
+      drops.splice(i, 1);
     }
 
-    // Quitar si se va del canvas
     if (drop.y > canvas.height) {
       drops.splice(i, 1);
     }
@@ -164,7 +199,6 @@ function update() {
     const dy = player.y - enemy.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Evitar división por cero
     if (distance > 0) {
       const speed = enemy.speed;
       enemy.x += (dx / distance) * speed;
@@ -172,7 +206,6 @@ function update() {
     }
   });
 
-  // Colisión enemigo-jugador
   enemies.forEach((enemy, i) => {
     if (
       enemy.x < player.x + player.width &&
@@ -180,12 +213,12 @@ function update() {
       enemy.y < player.y + player.height &&
       enemy.y + enemy.height > player.y
     ) {
-      enemies.splice(i, 1); // eliminar el enemigo que lo tocó
+      enemies.splice(i, 1);
       player.vidas--;
 
       if (player.vidas <= 0) {
         alert("¡Game Over!");
-        document.location.reload(); // recarga el juego
+        document.location.reload();
       }
     }
   });
@@ -198,11 +231,9 @@ function update() {
         bullet.y < enemy.y + enemy.height &&
         bullet.y + 10 > enemy.y
       ) {
-        // Eliminar enemigo y bala
         enemies.splice(ei, 1);
         player.bullets.splice(bi, 1);
 
-        // Drop aleatorio (con acceso válido a `enemy`)
         if (Math.random() < 0.3) {
           const objetoAleatorio =
             objetos[Math.floor(Math.random() * objetos.length)];
@@ -228,27 +259,31 @@ function update() {
 }
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Asegúrate de que el fondo sea negro
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
+  ctx.fillStyle = "black";  // Establece el color de fondo como negro
+  ctx.fillRect(0, 0, canvas.width, canvas.height); // Rellena el canvas con color negro
 
-  // Jugador
+  // Dibuja el jugador
   ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 
-  // Balas
+  // Dibuja las balas
   ctx.fillStyle = "white";
   player.bullets.forEach((bullet) => {
     ctx.fillRect(bullet.x, bullet.y, 4, 10);
   });
 
-  // Enemigos
+  // Dibuja los enemigos
   enemies.forEach((enemy) => {
     ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.width, enemy.height);
   });
 
-  // Mostrar vidas
+  // Dibuja las vidas
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
   ctx.fillText("Vidas ❤️: " + player.vidas, 10, 30);
 
+  // Dibuja los objetos que caen
   drops.forEach((drop) => {
     ctx.drawImage(drop.imagen, drop.x, drop.y, drop.width, drop.height);
   });
@@ -260,5 +295,41 @@ function gameLoop() {
   requestAnimationFrame(gameLoop);
 }
 
-setInterval(spawnEnemy, 1000); // Enemigos cada 1s
-gameLoop();
+function iniciarJuego() {
+  // Aquí se inicia el juego después de cargar las imágenes
+  iniciarGeneracionEnemigos();
+  gameLoop();
+}
+
+// Menú de Pausa
+function mostrarMenuPausa() {
+  document.getElementById("menu-pausa").style.display = "block"; // Muestra el menú
+  juegoPausado = true; // Pausa el juego
+  detenerGeneracionEnemigos(); // Detiene la generación de enemigos
+}
+
+function ocultarMenuPausa() {
+  document.getElementById("menu-pausa").style.display = "none"; // Oculta el menú
+  juegoPausado = false; // Reanuda el juego
+  iniciarGeneracionEnemigos(); // Reanuda la generación de enemigos
+}
+
+// Función para continuar el juego
+function continuarJuego() {
+  ocultarMenuPausa(); // Oculta el menú y continúa el juego
+}
+
+// Función para reiniciar el nivel
+function reiniciarNivel() {
+  document.location.reload(); // Recarga la página para reiniciar el juego
+}
+
+// Función para salir al lobby
+function salirLobby() {
+  window.location.href = "index.html"; // Redirige a otra página (ajusta el link como necesites)
+}
+
+
+
+
+

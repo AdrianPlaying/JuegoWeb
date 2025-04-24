@@ -4,20 +4,25 @@
     <meta charset="UTF-8" />
     <title>Shooter 2D</title>
     <style>
-      body {
+      html, body {
         margin: 0;
+        padding: 0;
+        overflow: hidden;
         background-color: black;
         color: #fff;
         font-family: Arial, sans-serif;
-        text-align: center;
+        height: 100%;
+        width: 100%;
       }
 
       canvas {
-        background: #000;
         display: block;
-        margin: 20px auto;
-        border: 2px solid #fff;
+        background: #000000; /* Fondo del canvas - Negro */
+        border: none;
+        width: 100vw;
+        height: 100vh;
       }
+      
 
       #dialogo-container {
         position: absolute;
@@ -35,6 +40,7 @@
         align-items: center;
         z-index: 999;
       }
+
       #personaje-img {
         width: 100px;
         height: 100px;
@@ -42,10 +48,12 @@
         margin-right: 20px;
         object-fit: cover;
       }
+
       #texto {
         flex: 1;
         font-size: 1.2rem;
       }
+
       #siguiente-btn {
         margin-top: 10px;
         background: #28a745;
@@ -55,10 +63,38 @@
         cursor: pointer;
         border-radius: 5px;
       }
+
+      /* Estilos del menú de pausa */
+      #menu-pausa {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        border-radius: 10px;
+        width: 300px;
+        text-align: center;
+        padding: 20px;
+        display: none;
+        z-index: 1000;
+      }
+
+      #menu-pausa button {
+        background-color: #00eaff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+      }
+      #menu-pausa button:hover {
+        background-color: #00eaff;
+      }
     </style>
   </head>
   <body>
-    <h1></h1>
     <div id="dialogo-container">
       <img id="personaje-img" src="" alt="Personaje" />
       <div>
@@ -69,7 +105,18 @@
       </div>
     </div>
 
-    <canvas id="gameCanvas" width="1000" height="700"></canvas>
+    <canvas id="gameCanvas"></canvas>
+
+    <!-- Menú de Pausa -->
+    <div id="menu-pausa">
+      <button onclick="reiniciarNivel()">Reiniciar Nivel</button>
+      <button onclick="salirLobby()">Salir al Lobby</button>
+      <button onclick="continuarJuego()">Continuar</button>
+    </div>
+
     <script src="game.js"></script>
   </body>
 </html>
+
+
+
