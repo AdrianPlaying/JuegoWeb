@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>¡Victoria!</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: black url("img/victoria-bg.gif") center/cover no-repeat;
+        color: white;
+        font-family: "Press Start 2P", cursive;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+      }
+
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 20px;
+      }
+
+      p {
+        font-size: 1rem;
+        margin-bottom: 40px;
+      }
+
+      button {
+        font-family: "Press Start 2P", cursive;
+        background-color: #00ff99;
+        color: black;
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        box-shadow: 0 0 10px #00ff99;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background-color: #00cc7a;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>¡Felicidades, campeón!</h1>
+    <p>Has derrotado a todos los enemigos y salvado este mundo digital.</p>
+    <button onclick="window.location.href='index.html'">
+      Volver al Inicio
+    </button>
+  </body>
+</html>

@@ -1,7 +1,9 @@
+// ============================
+// Inicialización de Canvas
+// ============================
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Ajustar tamaño del canvas a pantalla completa
 function ajustarTamanioCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -11,48 +13,106 @@ function ajustarTamanioCanvas() {
   player.y = canvas.height - player.height - 30;
 }
 
-window.addEventListener("load", () => {
-  ajustarTamanioCanvas(); // Asegura que el tamaño se ajuste al cargar la página
-});
+window.addEventListener("load", ajustarTamanioCanvas);
 window.addEventListener("resize", ajustarTamanioCanvas);
 
+// ============================
+// Carga de Imágenes
+// ============================
 const playerImg = new Image();
 const enemyImg = new Image();
+const jefe1Img = new Image();
+const jefe2Img = new Image();
+const imgVida = new Image();
+const imgPoder = new Image();
+const imgEscudo = new Image();
+const backgroundImg = new Image();
+
 playerImg.src = "img/player.png";
 enemyImg.src = "img/enemy.png";
+jefe1Img.src = "img/jefe1.png";
+jefe2Img.src = "img/jefe2.png";
+imgVida.src = "img/vida.png";
+imgPoder.src = "img/poder.png";
+imgEscudo.src = "img/escudo.png";
+backgroundImg.src = "img/unnamed.png";
 
 let imagesLoaded = 0;
-const totalImages = 2; // Número total de imágenes que necesitamos cargar
+const totalImages = 3;
 
-// Función que se ejecuta cuando las imágenes se cargan
 function checkImagesLoaded() {
   imagesLoaded++;
   if (imagesLoaded === totalImages) {
     console.log("Todas las imágenes se han cargado correctamente");
-    iniciarJuego(); // Inicia el juego cuando todas las imágenes se hayan cargado
+    iniciarJuego();
   }
 }
 
 playerImg.onload = checkImagesLoaded;
 enemyImg.onload = checkImagesLoaded;
+backgroundImg.onload = checkImagesLoaded;
 
+// ============================
+// Carga de Música
+// ============================
 const bgMusic = new Audio("sounds/bg-music.mp3");
 bgMusic.loop = true;
 bgMusic.volume = 0.5;
+
 window.addEventListener("keydown", () => {
   if (bgMusic.paused) {
     bgMusic.play();
   }
 });
 
+// ============================
+// Variables Globales
+// ============================
+const player = {
+  x: 0,
+  y: 0,
+  width: 90,
+  height: 90,
+  speed: 7,
+  bullets: [],
+  vidas: 3,
+  dobleDisparo: false,
+};
+
+const enemies = [];
+const drops = [];
+const objetos = [
+  { tipo: "vida", imagen: imgVida },
+  { tipo: "poder", imagen: imgPoder },
+  { tipo: "escudo", imagen: imgEscudo },
+];
+
+let keys = {};
+let enemigosEliminados = 0;
+let enemyInterval;
+let jefeActual = null;
+let jefe1Activo = false;
+let jefe1Derrotado = false;
+let jefe2Activo = false;
+let dialogoMostrado = false;
+let juegoPausado = false;
+let jefeEmbistiendo = false;
+let velocidadEmbestida = 10; // velocidad cuando embiste
+let velocidadRetorno = 3; // velocidad cuando regresa
+
+// ============================
+// Sistema de Diálogos
+// ============================
 const dialogos = [
   {
     personaje: "img/gato.png",
-    texto: "¡Bienvenido al frente de batalla!",
+    texto:
+      "¡Enhorabuena, bienvenido aventurero!\nYa te habrás fijado que te atacan los slimes\ny sueltan ciertos objetos.\nAprovechalos en tu aventura!!!",
   },
   {
     personaje: "img/knight.png",
-    texto: "Tienes que cruzar las líneas enemigas. Buena suerte.",
+    texto:
+      "¿Tu eres la esperanza de este mundo?...\nJa ja ja\n Que bajo han caído.\n jamás pensé que acabar con el mundo sería tan fácil...",
   },
 ];
 
@@ -79,40 +139,32 @@ function mostrarSiguienteDialogo() {
   }
 }
 
-const imgVida = new Image();
-imgVida.src = "img/vida.png";
-const imgPoder = new Image();
-imgPoder.src = "img/poder.png";
-const imgEscudo = new Image();
-imgEscudo.src = "img/escudo.png";
+// ============================
+// Sistema de Jefes
+// ============================
+function crearJefe(numero) {
+  jefeActual = {
+    x: canvas.width / 2 - 100,
+    y: -200,
+    width: 200,
+    height: 200,
+    vida: numero === 1 ? 100 : 30,
+    vidaMaxima: numero === 1 ? 100 : 30,
+    speed: 1.5,
+    imagen: numero === 1 ? jefe1Img : jefe2Img,
+  };
+  jefeActual.intervaloEmbestida = setInterval(jefeEmbestir, 7000); // embiste cada 4 segundos
+}
 
-const objetos = [
-  { tipo: "vida", imagen: imgVida },
-  { tipo: "poder", imagen: imgPoder },
-  { tipo: "escudo", imagen: imgEscudo },
-];
+function jefeEmbestir() {
+  if (jefeActual && !jefeEmbistiendo) {
+    jefeEmbistiendo = true;
+  }
+}
 
-const drops = [];
-
-const player = {
-  x: 0,
-  y: 0,
-  width: 90,
-  height: 90,
-  speed: 7,
-  bullets: [],
-  vidas: 3,
-  dobleDisparo: false,
-};
-
-const enemies = [];
-let keys = {};
-let enemigosEliminados = 0;
-let dialogoMostrado = false;
-let juegoPausado = false;
-
-let enemyInterval; // Intervalo de enemigos
-
+// ============================
+// Controles del Jugador
+// ============================
 document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
@@ -125,19 +177,18 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  // Pausar juego al presionar ESC o P
   if (e.key === "Escape" || e.key === "p") {
-    if (!juegoPausado) {
-      mostrarMenuPausa();
-    } else {
-      ocultarMenuPausa();
-    }
+    juegoPausado ? ocultarMenuPausa() : mostrarMenuPausa();
   }
 });
+
 document.addEventListener("keyup", (e) => {
   keys[e.key] = false;
 });
 
+// ============================
+// Generación de Enemigos
+// ============================
 function spawnEnemy() {
   const x = Math.random() * (canvas.width - 40);
   enemies.push({
@@ -150,25 +201,31 @@ function spawnEnemy() {
 }
 
 function iniciarGeneracionEnemigos() {
-  enemyInterval = setInterval(spawnEnemy, 1000); // Inicia la generación de enemigos
+  enemyInterval = setInterval(spawnEnemy, 1000);
 }
 
 function detenerGeneracionEnemigos() {
-  clearInterval(enemyInterval); // Detiene la generación de enemigos
+  clearInterval(enemyInterval);
 }
 
+// ============================
+// Actualización del Juego
+// ============================
 function update() {
   if (juegoPausado) return;
 
+  // Movimiento jugador
   if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
   if (keys["ArrowRight"] && player.x + player.width < canvas.width)
     player.x += player.speed;
 
+  // Movimiento balas
   player.bullets.forEach((bullet, i) => {
     bullet.y -= 10;
     if (bullet.y < 0) player.bullets.splice(i, 1);
   });
 
+  // Movimiento drops
   drops.forEach((drop, i) => {
     drop.y += drop.speed;
 
@@ -178,34 +235,30 @@ function update() {
       drop.y < player.y + player.height &&
       drop.y + drop.height > player.y
     ) {
-      if (drop.tipo === "vida") {
-        player.vidas++;
-      } else if (drop.tipo === "poder") {
+      if (drop.tipo === "vida") player.vidas++;
+      if (drop.tipo === "poder") {
         player.dobleDisparo = true;
-        setTimeout(() => {
-          player.dobleDisparo = false;
-        }, 10000);
+        setTimeout(() => (player.dobleDisparo = false), 10000);
       }
       drops.splice(i, 1);
     }
 
-    if (drop.y > canvas.height) {
-      drops.splice(i, 1);
-    }
+    if (drop.y > canvas.height) drops.splice(i, 1);
   });
 
-  enemies.forEach((enemy, i) => {
+  // Movimiento enemigos hacia jugador
+  enemies.forEach((enemy) => {
     const dx = player.x - enemy.x;
     const dy = player.y - enemy.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
     if (distance > 0) {
-      const speed = enemy.speed;
-      enemy.x += (dx / distance) * speed;
-      enemy.y += (dy / distance) * speed;
+      enemy.x += (dx / distance) * enemy.speed;
+      enemy.y += (dy / distance) * enemy.speed;
     }
   });
 
+  // Colisión enemigo-jugador
   enemies.forEach((enemy, i) => {
     if (
       enemy.x < player.x + player.width &&
@@ -215,7 +268,6 @@ function update() {
     ) {
       enemies.splice(i, 1);
       player.vidas--;
-
       if (player.vidas <= 0) {
         alert("¡Game Over!");
         document.location.reload();
@@ -223,6 +275,7 @@ function update() {
     }
   });
 
+  // Colisión bala-enemigo
   enemies.forEach((enemy, ei) => {
     player.bullets.forEach((bullet, bi) => {
       if (
@@ -233,12 +286,13 @@ function update() {
       ) {
         enemies.splice(ei, 1);
         player.bullets.splice(bi, 1);
+        enemigosEliminados++;
 
+        // Drop objetos
         if (Math.random() < 0.3) {
-          const objetoAleatorio =
-            objetos[Math.floor(Math.random() * objetos.length)];
+          const objeto = objetos[Math.floor(Math.random() * objetos.length)];
           drops.push({
-            ...objetoAleatorio,
+            ...objeto,
             x: enemy.x + enemy.width / 2,
             y: enemy.y + enemy.height / 2,
             width: 50,
@@ -247,7 +301,18 @@ function update() {
           });
         }
 
-        enemigosEliminados++;
+        // Activar jefe
+        if (enemigosEliminados === 10 && !jefe1Activo && !jefe1Derrotado) {
+          jefe1Activo = true;
+          detenerGeneracionEnemigos();
+          crearJefe(1);
+        }
+
+        if (enemigosEliminados >= 20 && jefe1Derrotado && !jefe2Activo) {
+          jefe2Activo = true;
+          detenerGeneracionEnemigos();
+          crearJefe(2);
+        }
 
         if (enemigosEliminados === 11 && !dialogoMostrado) {
           mostrarDialogo();
@@ -256,39 +321,161 @@ function update() {
       }
     });
   });
+
+  // Movimiento y colisión del jefe
+  if (jefeActual) {
+    if (jefeEmbistiendo) {
+      jefeActual.y += velocidadEmbestida;
+
+      // Si pasa del jugador o del suelo, empieza a volver
+      if (jefeActual.y > player.y) {
+        velocidadEmbestida = -velocidadRetorno; // Cambia dirección para volver hacia arriba
+      }
+
+      // Cuando regresa arriba, termina la embestida
+      if (jefeActual.y < 50) {
+        jefeEmbistiendo = false;
+        velocidadEmbestida = 10; // Reinicia velocidad para próxima embestida
+        jefeActual.y = 50; // Ajusta su posición
+      }
+    } else {
+      // Movimiento HORIZONTAL siguiendo al jugador
+      if (player.x + player.width / 2 < jefeActual.x + jefeActual.width / 2) {
+        jefeActual.x -= 2; // Velocidad hacia la izquierda
+      } else if (
+        player.x + player.width / 2 >
+        jefeActual.x + jefeActual.width / 2
+      ) {
+        jefeActual.x += 2; // Velocidad hacia la derecha
+      }
+    }
+
+    if (jefeActual.y < 50) jefeActual.y += jefeActual.speed;
+
+    // Colisión bala-jefe
+    if (jefeActual) {
+      // Copia el array de balas para evitar problemas de modificación durante la iteración
+      const bullets = [...player.bullets];
+
+      // Usamos un bucle for tradicional en lugar de forEach para tener más control
+      for (let bi = bullets.length - 1; bi >= 0; bi--) {
+        const bullet = bullets[bi];
+
+        // Verificamos nuevamente que jefeActual no se haya vuelto null
+        if (
+          jefeActual &&
+          bullet.x < jefeActual.x + jefeActual.width &&
+          bullet.x + 4 > jefeActual.x &&
+          bullet.y < jefeActual.y + jefeActual.height &&
+          bullet.y + 10 > jefeActual.y
+        ) {
+          jefeActual.vida--;
+          // Encontramos el índice en el array original
+          const originalIndex = player.bullets.findIndex((b) => b === bullet);
+          if (originalIndex !== -1) {
+            player.bullets.splice(originalIndex, 1);
+          }
+
+          if (jefeActual && jefeActual.vida <= 0) {
+            clearInterval(jefeActual.intervaloEmbestida);
+            if (jefe1Activo) {
+              jefe1Activo = false;
+              jefe1Derrotado = true;
+              iniciarGeneracionEnemigos();
+              jefeActual = null;
+              break; // Salimos del bucle ya que jefeActual es ahora null
+            } else if (jefe2Activo) {
+              jefe2Activo = false;
+              juegoPausado = true;
+              detenerGeneracionEnemigos();
+              jefeActual = null;
+              setTimeout(() => {
+                alert(
+                  "🎉 ¡Felicidades! Has ayudado al planeta y completado el juego."
+                );
+                window.location.href = "victoria.html";
+              }, 500);
+              break; // Salimos del bucle ya que jefeActual es ahora null
+            }
+          }
+        }
+      }
+    }
+
+    // Colisión jefe-jugador
+    if (jefeActual && jefeEmbistiendo) {
+      if (
+        jefeActual &&
+        jefeEmbistiendo &&
+        jefeActual.x < player.x + player.width &&
+        jefeActual.x + jefeActual.width > player.x &&
+        jefeActual.y < player.y + player.height &&
+        jefeActual.y + jefeActual.height > player.y
+      ) {
+        player.vidas--;
+
+        if (player.vidas <= 0) {
+          alert("¡Game Over!");
+          document.location.reload();
+        }
+      }
+    }
+  }
 }
 
+// ============================
+// Renderizado del Juego
+// ============================
 function draw() {
-  // Asegúrate de que el fondo sea negro
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpia el canvas
-  ctx.fillStyle = "black";  // Establece el color de fondo como negro
-  ctx.fillRect(0, 0, canvas.width, canvas.height); // Rellena el canvas con color negro
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Dibujar la imagen de fondo en lugar del rectángulo negro
+  ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
-  // Dibuja el jugador
   ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
 
-  // Dibuja las balas
   ctx.fillStyle = "white";
   player.bullets.forEach((bullet) => {
     ctx.fillRect(bullet.x, bullet.y, 4, 10);
   });
 
-  // Dibuja los enemigos
   enemies.forEach((enemy) => {
     ctx.drawImage(enemyImg, enemy.x, enemy.y, enemy.width, enemy.height);
   });
 
-  // Dibuja las vidas
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
-  ctx.fillText("Vidas ❤️: " + player.vidas, 10, 30);
+  ctx.fillText(`Vidas ❤️: ${player.vidas}`, 10, 30);
 
-  // Dibuja los objetos que caen
   drops.forEach((drop) => {
     ctx.drawImage(drop.imagen, drop.x, drop.y, drop.width, drop.height);
   });
+
+  if (jefeActual) {
+    ctx.drawImage(
+      jefeActual.imagen,
+      jefeActual.x,
+      jefeActual.y,
+      jefeActual.width,
+      jefeActual.height
+    );
+
+    ctx.fillStyle = "red";
+    ctx.fillRect(jefeActual.x, jefeActual.y - 5, jefeActual.width, 3);
+    if (jefeActual.vida > 0) {
+      ctx.fillStyle = "lime";
+      ctx.fillRect(
+        jefeActual.x,
+        jefeActual.y - 5,
+        (jefeActual.width * jefeActual.vida) / jefeActual.vidaMaxima,
+        5
+      );
+    }
+  }
 }
 
+// ============================
+// Bucle Principal
+// ============================
 function gameLoop() {
   update();
   draw();
@@ -296,40 +483,33 @@ function gameLoop() {
 }
 
 function iniciarJuego() {
-  // Aquí se inicia el juego después de cargar las imágenes
   iniciarGeneracionEnemigos();
   gameLoop();
 }
 
+// ============================
 // Menú de Pausa
+// ============================
 function mostrarMenuPausa() {
-  document.getElementById("menu-pausa").style.display = "block"; // Muestra el menú
-  juegoPausado = true; // Pausa el juego
-  detenerGeneracionEnemigos(); // Detiene la generación de enemigos
+  document.getElementById("menu-pausa").style.display = "block";
+  juegoPausado = true;
+  detenerGeneracionEnemigos();
 }
 
 function ocultarMenuPausa() {
-  document.getElementById("menu-pausa").style.display = "none"; // Oculta el menú
-  juegoPausado = false; // Reanuda el juego
-  iniciarGeneracionEnemigos(); // Reanuda la generación de enemigos
+  document.getElementById("menu-pausa").style.display = "none";
+  juegoPausado = false;
+  iniciarGeneracionEnemigos();
 }
 
-// Función para continuar el juego
 function continuarJuego() {
-  ocultarMenuPausa(); // Oculta el menú y continúa el juego
+  ocultarMenuPausa();
 }
 
-// Función para reiniciar el nivel
 function reiniciarNivel() {
-  document.location.reload(); // Recarga la página para reiniciar el juego
+  document.location.reload();
 }
 
-// Función para salir al lobby
 function salirLobby() {
-  window.location.href = "index.html"; // Redirige a otra página (ajusta el link como necesites)
+  window.location.href = "index.html";
 }
-
-
-
-
-
