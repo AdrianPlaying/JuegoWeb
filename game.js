@@ -97,7 +97,7 @@ let jefe2Activo = false;
 let dialogoMostrado = false;
 let juegoPausado = false;
 let jefeEmbistiendo = false;
-let velocidadEmbestida = 10; // velocidad cuando embiste
+let velocidadEmbestida = 8; // velocidad cuando embiste
 let velocidadRetorno = 3; // velocidad cuando regresa
 
 // ============================
@@ -215,9 +215,13 @@ function update() {
   if (juegoPausado) return;
 
   // Movimiento jugador
+  // Movimiento jugador
   if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
   if (keys["ArrowRight"] && player.x + player.width < canvas.width)
     player.x += player.speed;
+  if (keys["ArrowUp"] && player.y > 0) player.y -= player.speed;
+  if (keys["ArrowDown"] && player.y + player.height < canvas.height)
+    player.y += player.speed;
 
   // Movimiento balas
   player.bullets.forEach((bullet, i) => {
@@ -302,13 +306,13 @@ function update() {
         }
 
         // Activar jefe
-        if (enemigosEliminados === 10 && !jefe1Activo && !jefe1Derrotado) {
+        if (enemigosEliminados === 15 && !jefe1Activo && !jefe1Derrotado) {
           jefe1Activo = true;
           detenerGeneracionEnemigos();
           crearJefe(1);
         }
 
-        if (enemigosEliminados >= 20 && jefe1Derrotado && !jefe2Activo) {
+        if (enemigosEliminados >= 25 && jefe1Derrotado && !jefe2Activo) {
           jefe2Activo = true;
           detenerGeneracionEnemigos();
           crearJefe(2);
@@ -414,9 +418,10 @@ function update() {
       ) {
         player.vidas--;
 
-        if (player.vidas <= 0) {
+        if (player.vidas == 0) {
           alert("¡Game Over!");
           document.location.reload();
+          bgMusic.pause();
         }
       }
     }
@@ -494,12 +499,14 @@ function mostrarMenuPausa() {
   document.getElementById("menu-pausa").style.display = "block";
   juegoPausado = true;
   detenerGeneracionEnemigos();
+  bgMusic.pause();
 }
 
 function ocultarMenuPausa() {
   document.getElementById("menu-pausa").style.display = "none";
   juegoPausado = false;
   iniciarGeneracionEnemigos();
+  bgMusic.play();
 }
 
 function continuarJuego() {
