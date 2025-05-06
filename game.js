@@ -57,7 +57,7 @@ backgroundImg.onload = checkImagesLoaded;
 // ============================
 const bgMusic = new Audio("sounds/bg-music.mp3");
 bgMusic.loop = true;
-bgMusic.volume = 0.5;
+bgMusic.volume = 0.1;
 
 window.addEventListener("keydown", () => {
   if (bgMusic.paused) {
@@ -96,9 +96,13 @@ let jefe1Derrotado = false;
 let jefe2Activo = false;
 let dialogoMostrado = false;
 let juegoPausado = false;
+let juegoTerminado = false; // Nueva variable para controlar si el juego ha terminado
 let jefeEmbistiendo = false;
 let velocidadEmbestida = 8; // velocidad cuando embiste
 let velocidadRetorno = 3; // velocidad cuando regresa
+let mostrarIndicadorEmbestida = false;
+let xObjetivoEmbestida = 0;
+let jefePreparandoEmbestida = false;
 
 // ============================
 // Sistema de Diálogos
@@ -107,12 +111,12 @@ const dialogos = [
   {
     personaje: "img/gato.png",
     texto:
-      "¡Enhorabuena, bienvenido aventurero!\nYa te habrás fijado que te atacan los slimes\ny sueltan ciertos objetos.\nAprovechalos en tu aventura!!!",
+      "¡Enhorabuena, bienvenido aventurero! Ya te habrás fijado que te atacan los slimes y sueltan ciertos objetos. Aprovechalos en tu aventura!!!",
   },
   {
     personaje: "img/knight.png",
     texto:
-      "¿Tu eres la esperanza de este mundo?...\nJa ja ja\n Que bajo han caído.\n jamás pensé que acabar con el mundo sería tan fácil...",
+      "¿Tu eres la esperanza de este mundo?... Ja ja ja Que bajo han caído. Jamás pensé que acabar con el mundo sería tan fácil...",
   },
 ];
 
@@ -126,39 +130,52 @@ function mostrarDialogo() {
   imagen.src = dialogos[indiceDialogo].personaje;
   texto.textContent = dialogos[indiceDialogo].texto;
   contenedor.style.display = "flex";
-  juegoPausado = true;
-}
 
-function mostrarSiguienteDialogo() {
-  indiceDialogo++;
-  if (indiceDialogo < dialogos.length) {
-    mostrarDialogo();
-  } else {
-    document.getElementById("dialogo-container").style.display = "none";
-    juegoPausado = false;
-  }
+  // Avanza automáticamente después de 5 segundos
+  setTimeout(() => {
+    indiceDialogo++;
+    if (indiceDialogo < dialogos.length) {
+      mostrarDialogo();
+    } else {
+      contenedor.style.display = "none";
+      juegoPausado = false;
+    }
+  }, 5000);
 }
 
 // ============================
 // Sistema de Jefes
 // ============================
 function crearJefe(numero) {
+  let width = 200;
+  let height = 200;
+  if (numero === 2) {
+    width = 300;
+    height = 300;
+  }
+
   jefeActual = {
-    x: canvas.width / 2 - 100,
+    x: canvas.width / 2 - width / 2,
     y: -200,
-    width: 200,
-    height: 200,
-    vida: numero === 1 ? 100 : 30,
-    vidaMaxima: numero === 1 ? 100 : 30,
+    width,
+    height,
+    vida: numero === 1 ? 50 : 100,
+    vidaMaxima: numero === 1 ? 50 : 100,
     speed: 1.5,
     imagen: numero === 1 ? jefe1Img : jefe2Img,
   };
-  jefeActual.intervaloEmbestida = setInterval(jefeEmbestir, 7000); // embiste cada 4 segundos
+  jefeActual.intervaloEmbestida = setInterval(jefeEmbestir, 7000); // embiste cada 7 segundos
 }
 
 function jefeEmbestir() {
-  if (jefeActual && !jefeEmbistiendo) {
-    jefeEmbistiendo = true;
+  if (jefeActual && !jefeEmbistiendo && !jefePreparandoEmbestida) {
+    jefePreparandoEmbestida = true;
+
+    // Mostrar indicador por 1.5 segundos antes de embestir
+    setTimeout(() => {
+      jefePreparandoEmbestida = false;
+      jefeEmbistiendo = true;
+    }, 1500);
   }
 }
 
@@ -178,7 +195,10 @@ document.addEventListener("keydown", (e) => {
   }
 
   if (e.key === "Escape" || e.key === "p") {
-    juegoPausado ? ocultarMenuPausa() : mostrarMenuPausa();
+    if (!juegoTerminado) {
+      // Solo permite pausar si el juego no ha terminado
+      juegoPausado ? ocultarMenuPausa() : mostrarMenuPausa();
+    }
   }
 });
 
@@ -214,7 +234,6 @@ function detenerGeneracionEnemigos() {
 function update() {
   if (juegoPausado) return;
 
-  // Movimiento jugador
   // Movimiento jugador
   if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
   if (keys["ArrowRight"] && player.x + player.width < canvas.width)
@@ -273,8 +292,8 @@ function update() {
       enemies.splice(i, 1);
       player.vidas--;
       if (player.vidas <= 0) {
-        alert("¡Game Over!");
-        document.location.reload();
+        // Reemplazamos el alert por mostrar el menú de derrota
+        mostrarMenuDerrota();
       }
     }
   });
@@ -358,10 +377,10 @@ function update() {
 
     // Colisión bala-jefe
     if (jefeActual) {
-      // Copia el array de balas para evitar problemas de modificación durante la iteración
+      // Array de balas para evitar problemas de modificación durante la iteración
       const bullets = [...player.bullets];
 
-      // Usamos un bucle for tradicional en lugar de forEach para tener más control
+      // Usamos un bucle for tradicional para tener más control
       for (let bi = bullets.length - 1; bi >= 0; bi--) {
         const bullet = bullets[bi];
 
@@ -391,6 +410,7 @@ function update() {
             } else if (jefe2Activo) {
               jefe2Activo = false;
               juegoPausado = true;
+              juegoTerminado = true;
               detenerGeneracionEnemigos();
               jefeActual = null;
               setTimeout(() => {
@@ -418,10 +438,9 @@ function update() {
       ) {
         player.vidas--;
 
-        if (player.vidas == 0) {
-          alert("¡Game Over!");
-          document.location.reload();
-          bgMusic.pause();
+        if (player.vidas <= 0) {
+          // Reemplazamos el alert por mostrar el menú de derrota
+          mostrarMenuDerrota();
         }
       }
     }
@@ -448,12 +467,25 @@ function draw() {
   });
 
   ctx.fillStyle = "white";
-  ctx.font = "20px Arial";
+  ctx.font = "18px Arial";
   ctx.fillText(`Vidas ❤️: ${player.vidas}`, 10, 30);
+  ctx.fillText(`Puntaje 🏆: ${enemigosEliminados}`, 10, 60);
 
   drops.forEach((drop) => {
     ctx.drawImage(drop.imagen, drop.x, drop.y, drop.width, drop.height);
   });
+
+  if (jefeActual && jefePreparandoEmbestida) {
+    ctx.beginPath();
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 20;
+    const centerX = jefeActual.x + jefeActual.width / 2;
+    const startY = jefeActual.y + jefeActual.height;
+    const endY = canvas.height;
+    ctx.moveTo(centerX, startY);
+    ctx.lineTo(centerX, endY);
+    ctx.stroke();
+  }
 
   if (jefeActual) {
     ctx.drawImage(
@@ -518,5 +550,24 @@ function reiniciarNivel() {
 }
 
 function salirLobby() {
+  window.location.href = "index.html";
+}
+
+// ============================
+// Menú de Derrota
+// ============================
+function mostrarMenuDerrota() {
+  document.getElementById("menu-derrota").style.display = "block";
+  juegoPausado = true;
+  juegoTerminado = true;
+  detenerGeneracionEnemigos();
+  bgMusic.pause();
+}
+
+function reiniciarNivelDerrota() {
+  document.location.reload();
+}
+
+function regresarMenuPrincipal() {
   window.location.href = "index.html";
 }
