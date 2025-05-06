@@ -70,39 +70,243 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0, 0, 0, 0.8);
-        border-radius: 10px;
-        width: 300px;
+        background: linear-gradient(
+          135deg,
+          rgba(25, 25, 65, 0.95) 0%,
+          rgba(10, 10, 35, 0.95) 100%
+        );
+        border-radius: 15px;
+        width: 320px;
         text-align: center;
-        padding: 20px;
+        padding: 30px;
         display: none;
         z-index: 1000;
+        box-shadow: 0 0 30px rgba(0, 0, 255, 0.3),
+          0 0 15px rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(100, 100, 255, 0.3);
+        backdrop-filter: blur(5px);
+        animation: menuAppear 0.3s ease-out;
+      }
+
+      @keyframes menuAppear {
+        from {
+          opacity: 0;
+          transform: translate(-50%, -55%) scale(0.9);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      #menu-pausa::before {
+        content: "PAUSA";
+        display: block;
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(50, 100, 255, 0.7);
+        letter-spacing: 3px;
       }
 
       #menu-pausa button {
-        background-color: #1900ff;
+        background: linear-gradient(to right, #3333ff, #0000ff);
         color: white;
         border: none;
-        padding: 10px 20px;
-        margin: 10px;
-        border-radius: 5px;
+        padding: 12px 20px;
+        margin: 10px 0;
+        border-radius: 8px;
         cursor: pointer;
-        width: 100%;
+        width: 85%;
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
       }
+
       #menu-pausa button:hover {
-        background-color: green;
+        background: linear-gradient(to right, #00aa00, #008800);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      #menu-pausa button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      #menu-pausa button::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.8);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+      }
+
+      #menu-pausa button:focus:not(:active)::after {
+        animation: ripple 1s ease-out;
+      }
+
+      @keyframes ripple {
+        0% {
+          transform: scale(0, 0);
+          opacity: 0.5;
+        }
+        20% {
+          transform: scale(25, 25);
+          opacity: 0.3;
+        }
+        100% {
+          opacity: 0;
+          transform: scale(40, 40);
+        }
+      }
+
+      /* Estilos específicos para cada botón */
+      #menu-pausa button:nth-child(1) {
+        border-left: 4px solid #ff3333;
+      }
+
+      #menu-pausa button:nth-child(2) {
+        border-left: 4px solid #ffaa00;
+      }
+
+      #menu-pausa button:nth-child(3) {
+        border-left: 4px solid #33ff33;
+      }
+
+      #menu-derrota {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(
+          135deg,
+          rgba(65, 25, 25, 0.95) 0%,
+          rgba(35, 10, 10, 0.95) 100%
+        );
+        border-radius: 15px;
+        width: 320px;
+        text-align: center;
+        padding: 30px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 0 30px rgba(255, 0, 0, 0.3),
+          0 0 15px rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 100, 100, 0.3);
+        backdrop-filter: blur(5px);
+        animation: menuAppear 0.3s ease-out;
+      }
+
+      #menu-derrota h2 {
+        color: #ffffff;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(255, 50, 50, 0.7);
+        letter-spacing: 3px;
+      }
+
+      #menu-derrota button {
+        background: linear-gradient(to right, #ff3333, #cc0000);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        margin: 10px 0;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 85%;
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+      }
+
+      #menu-derrota button:hover {
+        background: linear-gradient(to right, #cc6600, #aa4400);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      #menu-derrota button:active {
+        transform: translateY(1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      #menu-derrota button::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 5px;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.8);
+        opacity: 0;
+        border-radius: 100%;
+        transform: scale(1, 1) translate(-50%);
+        transform-origin: 50% 50%;
+      }
+
+      #menu-derrota button:focus:not(:active)::after {
+        animation: ripple 1s ease-out;
+      }
+
+      /* Responsive */
+      @media (max-width: 400px) {
+        #menu-derrota {
+          width: 90%;
+          padding: 20px 15px;
+        }
+      }
+
+      /* Responsive design */
+      @media (max-width: 400px) {
+        #menu-pausa {
+          width: 90%;
+          padding: 20px 15px;
+        }
+      }
+
+      /* Efecto de overlay en el fondo cuando el menú está activo */
+      .pausa-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(3px);
+        z-index: 999;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
     </style>
   </head>
   <body>
     <div id="dialogo-container">
       <img id="personaje-img" src="" alt="Personaje" />
-      <div>
-        <div id="texto">Texto aquí</div>
-        <button id="siguiente-btn" onclick="mostrarSiguienteDialogo()">
-          Siguiente
-        </button>
-      </div>
+      <div id="texto">Texto aquí</div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -112,6 +316,16 @@
       <button onclick="reiniciarNivel()">Reiniciar Nivel</button>
       <button onclick="salirLobby()">Salir al Lobby</button>
       <button onclick="continuarJuego()">Continuar</button>
+    </div>
+
+    <div id="menu-derrota">
+      <h2>¡Has Perdido!</h2>
+      <div>
+        <button onclick="reiniciarNivelDerrota()">Reiniciar Nivel</button>
+        <button onclick="regresarMenuPrincipal()">
+          Regresar al Menú Principal
+        </button>
+      </div>
     </div>
 
     <script src="game.js"></script>

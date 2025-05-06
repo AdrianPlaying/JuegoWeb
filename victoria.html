@@ -4,15 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>¡Victoria!</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
-      rel="stylesheet"
-    />
     <style>
       body {
         margin: 0;
         padding: 0;
-        background: black url("img/victoria-bg.gif") center/cover no-repeat;
+        background: black;
         color: white;
         font-family: "Press Start 2P", cursive;
         display: flex;
@@ -21,16 +17,57 @@
         align-items: center;
         height: 100vh;
         text-align: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("img/victoria-bg.gif") center/cover no-repeat;
+        opacity: 0.8;
+        z-index: -2;
+      }
+
+      .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(
+          circle,
+          rgba(0, 0, 0, 0.3) 0%,
+          rgba(0, 0, 0, 0.7) 100%
+        );
+        z-index: -1;
+      }
+
+      .content {
+        padding: 20px;
+        max-width: 90%;
+        animation: fadeIn 1.5s ease-out;
       }
 
       h1 {
-        font-size: 2rem;
+        font-size: 2.5rem;
         margin-bottom: 20px;
+        text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
+        animation: pulse 2s infinite, titleIn 1s ease-out;
       }
 
       p {
-        font-size: 1rem;
+        font-size: 1.2rem;
         margin-bottom: 40px;
+        line-height: 1.6;
+        animation: fadeInUp 1.5s ease-out 0.5s both;
+      }
+
+      .btn-container {
+        animation: fadeInUp 1.5s ease-out 1s both;
       }
 
       button {
@@ -38,24 +75,256 @@
         background-color: #00ff99;
         color: black;
         padding: 15px 30px;
-        border: none;
+        border: 4px solid #00cc7a;
         border-radius: 10px;
         cursor: pointer;
         font-size: 1rem;
-        box-shadow: 0 0 10px #00ff99;
-        transition: background 0.3s;
+        box-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
       }
 
       button:hover {
         background-color: #00cc7a;
+        transform: scale(1.05);
+      }
+
+      button:active {
+        transform: scale(0.98);
+      }
+
+      button::after {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(
+          rgba(255, 255, 255, 0.2),
+          rgba(255, 255, 255, 0)
+        );
+        transform: rotate(30deg);
+        transition: transform 0.3s;
+      }
+
+      button:hover::after {
+        transform: rotate(30deg) translate(10%, 10%);
+      }
+
+      .trophy {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite, rotateIn 1s ease-out;
+      }
+
+      .particle {
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #ffcc00;
+        pointer-events: none;
+      }
+
+      /* Animaciones */
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes titleIn {
+        from {
+          opacity: 0;
+          transform: translateY(-50px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes rotateIn {
+        from {
+          transform: rotate(-180deg) scale(0);
+          opacity: 0;
+        }
+        to {
+          transform: rotate(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-15px);
+        }
+      }
+
+      /* Estilos responsivos */
+      @media (max-width: 768px) {
+        h1 {
+          font-size: 1.8rem;
+        }
+        p {
+          font-size: 0.9rem;
+        }
+        button {
+          padding: 12px 24px;
+          font-size: 0.8rem;
+        }
+        .trophy {
+          font-size: 2.5rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        h1 {
+          font-size: 1.5rem;
+        }
+        p {
+          font-size: 0.8rem;
+        }
+        button {
+          padding: 10px 20px;
+          font-size: 0.7rem;
+        }
+        .trophy {
+          font-size: 2rem;
+        }
       }
     </style>
   </head>
   <body>
-    <h1>¡Felicidades, campeón!</h1>
-    <p>Has derrotado a todos los enemigos y salvado este mundo digital.</p>
-    <button onclick="window.location.href='index.html'">
-      Volver al Inicio
-    </button>
+    <div class="background"></div>
+    <div class="overlay"></div>
+    <div class="content">
+      <div class="trophy">🏆</div>
+      <h1>¡FELICIDADES, CAMPEÓN!</h1>
+      <p>
+        Has derrotado a todos los enemigos y salvado este mundo digital.<br />Tu
+        valentía será recordada por generaciones.
+      </p>
+      <div class="btn-container">
+        <button onclick="window.location.href='index.html'">
+          Volver al Inicio
+        </button>
+      </div>
+    </div>
+
+    <script>
+      // Efecto de partículas de celebración
+      function createParticles() {
+        const colors = [
+          "#FFFF00",
+          "#FF00FF",
+          "#00FFFF",
+          "#FF0000",
+          "#00FF00",
+          "#0000FF",
+          "#FFFFFF",
+        ];
+
+        setInterval(() => {
+          for (let i = 0; i < 3; i++) {
+            const particle = document.createElement("div");
+            particle.className = "particle";
+
+            // Posición aleatoria
+            const x = Math.random() * window.innerWidth;
+            const y = Math.random() * window.innerHeight;
+
+            // Color aleatorio
+            const color = colors[Math.floor(Math.random() * colors.length)];
+
+            // Tamaño aleatorio
+            const size = Math.random() * 8 + 5;
+
+            particle.style.left = `${x}px`;
+            particle.style.top = `${y}px`;
+            particle.style.backgroundColor = color;
+            particle.style.boxShadow = `0 0 10px ${color}`;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+
+            document.body.appendChild(particle);
+
+            // Animación de caída
+            const duration = Math.random() * 3 + 2;
+            const angle = Math.random() * 360;
+            const distance = Math.random() * 100 + 50;
+
+            particle.animate(
+              [
+                { transform: "translate(0, 0)", opacity: 1 },
+                {
+                  transform: `translate(${Math.cos(angle) * distance}px, ${
+                    Math.sin(angle) * distance
+                  }px)`,
+                  opacity: 0,
+                },
+              ],
+              {
+                duration: duration * 1000,
+                easing: "cubic-bezier(0.1, 0.8, 0.2, 1)",
+              }
+            );
+
+            // Eliminar partícula después de la animación
+            setTimeout(() => {
+              particle.remove();
+            }, duration * 1000);
+          }
+        }, 200);
+      }
+
+      // Opcional: Efecto de sonido
+      function playVictorySound() {
+        // Si tienes un archivo de sonido, descomenta esta sección
+        /*
+        const audio = new Audio("sounds/Happy.mp3");
+        audio.volume = 0.5;
+        audio.play();
+        */
+      }
+
+      // Iniciar efectos al cargar la página
+      window.addEventListener("load", () => {
+        createParticles();
+        playVictorySound();
+      });
+    </script>
   </body>
 </html>
