@@ -98,16 +98,26 @@ let dialogoMostrado = false;
 let juegoPausado = false;
 let juegoTerminado = false; // Nueva variable para controlar si el juego ha terminado
 let jefeEmbistiendo = false;
+let jefe2Derrotado = false;
+let dialogoMostradoJefe1 = false;
+let dialogoMostradoJefe2 = false;
 let velocidadEmbestida = 8; // velocidad cuando embiste
 let velocidadRetorno = 3; // velocidad cuando regresa
 let mostrarIndicadorEmbestida = false;
 let xObjetivoEmbestida = 0;
 let jefePreparandoEmbestida = false;
+// Variables nuevas para la animación de embestida
+let tiempoPreparacionEmbestida = 1500; // 1.5 segundos que dura la preparación
+let inicioPreparacionEmbestida = 0; // Timestamp cuando inicia la preparación
+let pulsaciones = []; // Array para múltiples ondas pulsantes
+let colorPrimario = ""; // Color principal de la trayectoria, se define según el jefe
+let colorSecundario = ""; // Color secundario para efectos, se define según el jefe
 
 // ============================
 // Sistema de Diálogos
 // ============================
 const dialogos = [
+  // Diálogo inicial
   {
     personaje: "img/gato.png",
     texto:
@@ -117,6 +127,28 @@ const dialogos = [
     personaje: "img/knight.png",
     texto:
       "¿Tu eres la esperanza de este mundo?... Ja ja ja Que bajo han caído. Jamás pensé que acabar con el mundo sería tan fácil...",
+  },
+
+  // Después del primer jefe
+  {
+    personaje: "img/gato.png",
+    texto:
+      "¡Has vencido al primer jefe! Estás progresando, pero aún queda mucho por hacer.",
+  },
+  {
+    personaje: "img/knight.png",
+    texto:
+      "Bueno, no pense que llegaras tan lejos.... goblins ataquen tambien.",
+  },
+
+  // Después del segundo jefe
+  {
+    personaje: "img/gato.png",
+    texto: "¡Bien hecho! Has demostrado un poder sorprendente.",
+  },
+  {
+    personaje: "img/knight.png",
+    texto: "Hmph... no está mal. Pero esto aún no ha terminado.",
   },
 ];
 
@@ -170,12 +202,41 @@ function crearJefe(numero) {
 function jefeEmbestir() {
   if (jefeActual && !jefeEmbistiendo && !jefePreparandoEmbestida) {
     jefePreparandoEmbestida = true;
+    inicioPreparacionEmbestida = Date.now(); // Registramos cuándo inicia
+
+    // Definir colores según el jefe
+    if (jefe1Activo) {
+      // Colores para el jefe 1: rojo
+      colorPrimario = "rgba(255, 0, 0";
+      colorSecundario = "rgba(255, 50, 50";
+    } else if (jefe2Activo) {
+      // Colores para el jefe 2: azul eléctrico/púrpura
+      colorPrimario = "rgba(60, 0, 255";
+      colorSecundario = "rgba(130, 60, 255";
+    }
+
+    // Generar ondas pulsantes cada 200ms durante la preparación
+    pulsaciones = []; // Reiniciamos el array de pulsaciones
+
+    // Generar 5 ondas durante la preparación
+    let intervaloOndas = setInterval(() => {
+      if (pulsaciones.length < 5) {
+        pulsaciones.push({
+          radio: 0,
+          alpha: 1,
+          velocidad: 3 + pulsaciones.length * 1.5, // Cada onda es más rápida
+        });
+      } else {
+        clearInterval(intervaloOndas);
+      }
+    }, 200);
 
     // Mostrar indicador por 1.5 segundos antes de embestir
     setTimeout(() => {
       jefePreparandoEmbestida = false;
       jefeEmbistiendo = true;
-    }, 1500);
+      pulsaciones = []; // Limpiamos las pulsaciones al terminar
+    }, tiempoPreparacionEmbestida);
   }
 }
 
@@ -476,15 +537,83 @@ function draw() {
   });
 
   if (jefeActual && jefePreparandoEmbestida) {
-    ctx.beginPath();
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 20;
+    // Calcula el progreso de la preparación (0.0 a 1.0)
+    const tiempoTranscurrido = Date.now() - inicioPreparacionEmbestida;
+    const progreso = Math.min(
+      tiempoTranscurrido / tiempoPreparacionEmbestida,
+      1
+    );
+
+    // Centro del jefe
     const centerX = jefeActual.x + jefeActual.width / 2;
-    const startY = jefeActual.y + jefeActual.height;
-    const endY = canvas.height;
-    ctx.moveTo(centerX, startY);
-    ctx.lineTo(centerX, endY);
+    const centerY = jefeActual.y + jefeActual.height / 2;
+
+    // Grosor base de la línea basado en el tamaño del jefe
+    const grosorLinea = jefeActual.width > 200 ? 150 : 100;
+
+    // Dibujar primero la línea de trayectoria con opacidad baja
+    const gradiente = ctx.createLinearGradient(
+      centerX,
+      centerY,
+      centerX,
+      canvas.height
+    );
+    gradiente.addColorStop(0, `${colorPrimario}, 0.7)`);
+    gradiente.addColorStop(1, `${colorPrimario}, 0.2)`);
+
+    ctx.beginPath();
+    ctx.strokeStyle = gradiente;
+    ctx.lineWidth = grosorLinea;
+    ctx.globalAlpha = 0.3 + progreso * 0.4; // Se vuelve más opaco con el tiempo
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX, canvas.height);
     ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Agregar efecto de pulso en el centro del jefe
+    ctx.beginPath();
+    ctx.fillStyle = `${colorSecundario}, ${0.4 + progreso * 0.6})`;
+    ctx.arc(
+      centerX,
+      centerY,
+      (jefeActual.width / 2) * (0.8 + Math.sin(progreso * Math.PI * 8) * 0.2),
+      0,
+      Math.PI * 2
+    );
+    ctx.fill();
+
+    // Dibujar las ondas pulsantes
+    pulsaciones.forEach((pulso, index) => {
+      pulso.radio += pulso.velocidad;
+      pulso.alpha -= 0.015;
+
+      if (pulso.alpha > 0) {
+        ctx.beginPath();
+        ctx.strokeStyle = `${colorSecundario}, ${pulso.alpha})`;
+        ctx.lineWidth = 5 + progreso * 5;
+        ctx.arc(centerX, centerY, pulso.radio, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    });
+
+    // Agregar marcadores en la trayectoria
+    const marcasTotal = 7;
+
+    // Color de marcadores adaptado al jefe
+    let colorMarcadores = jefe1Activo
+      ? "rgba(255, 255, 0,"
+      : "rgba(180, 230, 255,";
+
+    for (let i = 0; i < marcasTotal; i++) {
+      const posY = centerY + ((canvas.height - centerY) / marcasTotal) * i;
+      const tamMarca = 5 + Math.sin(progreso * 10 + i * 0.5) * 3;
+      const opacidad = 0.5 + progreso * 0.5;
+
+      ctx.beginPath();
+      ctx.fillStyle = `${colorMarcadores} ${opacidad})`;
+      ctx.arc(centerX, posY, tamMarca, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   if (jefeActual) {
