@@ -8,8 +8,6 @@
       body {
         margin: 0;
         padding: 0;
-        background: url("img/escenario.jpg") no-repeat center center fixed;
-        background-size: cover;
         font-family: "Arial", sans-serif;
         display: flex;
         align-items: center;
@@ -19,7 +17,19 @@
         position: relative;
       }
 
-      /* Overlay con gradiente para dar profundidad a la imagen de fondo */
+      /* Video de fondo responsivo */
+      #background-video {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        object-fit: cover;
+        z-index: -2;
+        pointer-events: none;
+      }
+
+      /* Overlay con gradiente para dar profundidad al video de fondo */
       body::before {
         content: "";
         position: absolute;
@@ -32,7 +42,7 @@
           rgba(0, 0, 0, 0.2) 0%,
           rgba(0, 0, 0, 0.6) 100%
         );
-        z-index: 0;
+        z-index: -1;
       }
 
       .menu {
@@ -215,9 +225,15 @@
     </style>
   </head>
   <body>
+    <!-- Video de fondo -->
+    <video autoplay muted loop id="background-video">
+      <source src="img/video.mp4" type="video/mp4" />
+      Tu navegador no soporta videos HTML5.
+    </video>
+
     <div class="menu">
       <h1>Eng vs Contamination</h1>
-      <audio id="bgMusic" src="sounds/bg-music.mp3" autoplay loop></audio>
+      <audio id="bgMusic" src="sounds/Minecraft.mp3" autoplay loop></audio>
       <button class="play-button" onclick="window.location.href='game.html'">
         PLAY
       </button>
@@ -231,7 +247,7 @@
         min="0"
         max="1"
         step="0.1"
-        value="0.5"
+        value="0.2"
         id="volumeControl"
       />
     </div>
