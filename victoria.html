@@ -5,6 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>¡Victoria!</title>
     <style>
+      :root {
+        --primary-color: #00ff99;
+        --primary-dark: #00cc7a;
+        --accent-color: #ff00ff;
+        --gold-color: #ffcc00;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
         padding: 0;
@@ -15,14 +26,14 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        min-height: 100vh;
         text-align: center;
-        overflow: hidden;
+        overflow-x: hidden;
         position: relative;
       }
 
       .background {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
@@ -33,7 +44,7 @@
       }
 
       .overlay {
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         width: 100%;
@@ -48,45 +59,129 @@
 
       .content {
         padding: 20px;
+        width: 100%;
         max-width: 90%;
+        margin: 2rem auto;
         animation: fadeIn 1.5s ease-out;
+        position: relative;
+        z-index: 1;
       }
 
       h1 {
-        font-size: 2.5rem;
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
         margin-bottom: 20px;
         text-shadow: 0 0 10px #ff00ff, 0 0 20px #ff00ff;
         animation: pulse 2s infinite, titleIn 1s ease-out;
       }
 
       p {
-        font-size: 1.2rem;
-        margin-bottom: 40px;
+        font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+        margin-bottom: 30px;
         line-height: 1.6;
         animation: fadeInUp 1.5s ease-out 0.5s both;
       }
 
+      .trophy {
+        font-size: clamp(2rem, 7vw, 3rem);
+        margin-bottom: 20px;
+        animation: bounce 2s infinite, rotateIn 1s ease-out;
+      }
+
+      .score-display {
+        font-size: clamp(1.2rem, 4vw, 1.8rem);
+        margin-bottom: 20px;
+        color: var(--gold-color);
+        text-shadow: 0 0 10px var(--gold-color), 0 0 20px var(--gold-color);
+        animation: fadeInUp 1.5s ease-out 0.7s both;
+      }
+
+      .score-form {
+        margin: 0 auto 20px;
+        width: 100%;
+        max-width: 350px;
+      }
+
+      .score-form label {
+        display: block;
+        margin-bottom: 10px;
+        font-size: clamp(0.7rem, 2vw, 1rem);
+      }
+
+      .score-form input {
+        font-family: "Press Start 2P", cursive;
+        background: transparent;
+        border: 2px solid var(--primary-color);
+        border-radius: 5px;
+        padding: clamp(8px, 2vw, 10px);
+        font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+        color: white;
+        text-align: center;
+        width: clamp(80px, 30%, 100px);
+        margin: 0 auto 15px;
+        text-transform: uppercase;
+        box-shadow: 0 0 10px var(--primary-color);
+      }
+
+      .high-scores {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 15px;
+        border-radius: 10px;
+        margin: 0 auto 30px;
+        width: 100%;
+        max-width: 350px;
+        animation: fadeInUp 1.5s ease-out 1.1s both;
+        border: 2px solid var(--gold-color);
+        box-shadow: 0 0 15px var(--gold-color);
+      }
+
+      .high-scores h2 {
+        font-size: clamp(0.9rem, 3vw, 1.2rem);
+        margin-bottom: 15px;
+        color: var(--gold-color);
+      }
+
+      .high-scores ol {
+        text-align: left;
+        padding-left: 20px;
+        margin: 0;
+      }
+
+      .high-scores li {
+        margin-bottom: 8px;
+        font-size: clamp(0.7rem, 2vw, 0.9rem);
+        line-height: 1.4;
+        word-break: break-word;
+      }
+
       .btn-container {
-        animation: fadeInUp 1.5s ease-out 1s both;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto;
       }
 
       button {
         font-family: "Press Start 2P", cursive;
-        background-color: #00ff99;
+        background-color: var(--primary-color);
         color: black;
-        padding: 15px 30px;
-        border: 4px solid #00cc7a;
+        padding: clamp(10px, 3vw, 15px) clamp(15px, 5vw, 30px);
+        border: 4px solid var(--primary-dark);
         border-radius: 10px;
         cursor: pointer;
-        font-size: 1rem;
-        box-shadow: 0 0 10px #00ff99, 0 0 20px #00ff99;
+        font-size: clamp(0.7rem, 2vw, 1rem);
+        box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
         transition: all 0.3s;
         position: relative;
         overflow: hidden;
+        white-space: nowrap;
+        min-width: clamp(150px, 60%, 250px);
       }
 
       button:hover {
-        background-color: #00cc7a;
+        background-color: var(--primary-dark);
         transform: scale(1.05);
       }
 
@@ -113,19 +208,22 @@
         transform: rotate(30deg) translate(10%, 10%);
       }
 
-      .trophy {
-        font-size: 3rem;
-        margin-bottom: 20px;
-        animation: bounce 2s infinite, rotateIn 1s ease-out;
-      }
-
       .particle {
-        position: absolute;
+        position: fixed;
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        background: #ffcc00;
+        background: var(--gold-color);
         pointer-events: none;
+        z-index: 0;
+      }
+
+      .save-success {
+        color: var(--primary-color);
+        font-size: clamp(0.7rem, 2vw, 1rem);
+        margin-top: 10px;
+        animation: fadeIn 0.5s ease-out;
+        display: none;
       }
 
       /* Animaciones */
@@ -193,36 +291,33 @@
         }
       }
 
-      /* Estilos responsivos */
-      @media (max-width: 768px) {
-        h1 {
-          font-size: 1.8rem;
+      /* Optimización para dispositivos muy pequeños */
+      @media (max-height: 600px) {
+        body {
+          padding: 1rem 0;
+          height: auto;
+          min-height: 100vh;
         }
-        p {
-          font-size: 0.9rem;
-        }
-        button {
-          padding: 12px 24px;
-          font-size: 0.8rem;
-        }
-        .trophy {
-          font-size: 2.5rem;
-        }
-      }
 
-      @media (max-width: 480px) {
-        h1 {
-          font-size: 1.5rem;
-        }
-        p {
-          font-size: 0.8rem;
-        }
-        button {
-          padding: 10px 20px;
-          font-size: 0.7rem;
-        }
         .trophy {
-          font-size: 2rem;
+          margin-bottom: 10px;
+        }
+
+        h1 {
+          margin-bottom: 10px;
+        }
+
+        p {
+          margin-bottom: 15px;
+        }
+
+        .high-scores {
+          padding: 10px;
+          margin-bottom: 15px;
+        }
+
+        .score-form label {
+          margin-bottom: 5px;
         }
       }
     </style>
@@ -237,6 +332,37 @@
         Has derrotado a todos los enemigos y salvado este mundo digital.<br />Tu
         valentía será recordada por generaciones.
       </p>
+
+      <div class="score-display">
+        Tu puntaje: <span id="player-score">0</span>
+      </div>
+
+      <div class="score-form" id="score-form">
+        <label for="initials"
+          >Ingresa tus iniciales para guardar tu puntaje:</label
+        >
+        <input
+          type="text"
+          id="initials"
+          maxlength="3"
+          placeholder="AAA"
+          autocomplete="off"
+          onkeyup="this.value = this.value.toUpperCase();"
+        />
+        <br />
+        <button onclick="guardarPuntaje()">Guardar Puntaje</button>
+        <div class="save-success" id="save-success">
+          ¡Puntaje guardado con éxito!
+        </div>
+      </div>
+
+      <div class="high-scores" id="high-scores">
+        <h2>Mejores Puntajes</h2>
+        <ol id="scores-list">
+          <!-- Los puntajes se cargarán aquí -->
+        </ol>
+      </div>
+
       <div class="btn-container">
         <button onclick="window.location.href='index.html'">
           Volver al Inicio
@@ -245,6 +371,97 @@
     </div>
 
     <script>
+      // Recuperar el puntaje de la sesión o URL
+      let playerScore = 0;
+
+      // Intentar obtener el puntaje de localStorage (si se pasó de game.js)
+      if (localStorage.getItem("currentScore")) {
+        playerScore = parseInt(localStorage.getItem("currentScore")) || 0;
+      }
+      // Si no hay puntaje en localStorage, intentar obtenerlo de la URL
+      else {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("score")) {
+          playerScore = parseInt(urlParams.get("score")) || 0;
+        }
+      }
+
+      // Mostrar el puntaje
+      document.getElementById("player-score").textContent = playerScore;
+
+      // Función para guardar el puntaje
+      function guardarPuntaje() {
+        const initialsInput = document.getElementById("initials");
+        let initials = initialsInput.value.toUpperCase();
+
+        // Validar que se hayan ingresado exactamente 3 caracteres
+        if (initials.length !== 3) {
+          alert("Por favor ingresa exactamente 3 iniciales");
+          return;
+        }
+
+        // Validar que solo sean letras
+        if (!/^[A-Z]{3}$/.test(initials)) {
+          alert("Por favor usa solo letras (A-Z)");
+          return;
+        }
+
+        // Obtener los puntajes existentes
+        let highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+
+        // Agregar el nuevo puntaje
+        highScores.push({
+          initials: initials,
+          score: playerScore,
+          date: new Date().toLocaleDateString(),
+        });
+
+        // Ordenar los puntajes (de mayor a menor)
+        highScores.sort((a, b) => b.score - a.score);
+
+        // Mantener solo los 5 mejores
+        highScores = highScores.slice(0, 5);
+
+        // Guardar los puntajes
+        localStorage.setItem("highScores", JSON.stringify(highScores));
+
+        // Mostrar mensaje de éxito
+        document.getElementById("save-success").style.display = "block";
+
+        // Desactivar el formulario para evitar múltiples envíos
+        document.getElementById("initials").disabled = true;
+        document.querySelector("#score-form button").disabled = true;
+
+        // Actualizar la lista de puntajes
+        mostrarPuntajes();
+
+        // Efecto de celebración extra
+        createExtraParticles();
+      }
+
+      // Función para mostrar los puntajes
+      function mostrarPuntajes() {
+        const scoresList = document.getElementById("scores-list");
+        const highScores = JSON.parse(localStorage.getItem("highScores")) || [];
+
+        // Limpiar la lista
+        scoresList.innerHTML = "";
+
+        // Agregar cada puntaje a la lista
+        highScores.forEach((score, index) => {
+          const li = document.createElement("li");
+          li.textContent = `${score.initials}: ${score.score} pts`;
+          scoresList.appendChild(li);
+        });
+
+        // Si no hay puntajes, mostrar un mensaje
+        if (highScores.length === 0) {
+          const li = document.createElement("li");
+          li.textContent = "Aún no hay puntajes guardados";
+          scoresList.appendChild(li);
+        }
+      }
+
       // Efecto de partículas de celebración
       function createParticles() {
         const colors = [
@@ -257,8 +474,12 @@
           "#FFFFFF",
         ];
 
+        // Ajustar la cantidad de partículas según el tamaño de la pantalla
+        const particleFrequency = window.innerWidth < 600 ? 400 : 200;
+        const particlesPerBurst = window.innerWidth < 600 ? 2 : 3;
+
         setInterval(() => {
-          for (let i = 0; i < 3; i++) {
+          for (let i = 0; i < particlesPerBurst; i++) {
             const particle = document.createElement("div");
             particle.className = "particle";
 
@@ -269,8 +490,11 @@
             // Color aleatorio
             const color = colors[Math.floor(Math.random() * colors.length)];
 
-            // Tamaño aleatorio
-            const size = Math.random() * 8 + 5;
+            // Tamaño aleatorio (más pequeño en dispositivos móviles)
+            const size =
+              window.innerWidth < 600
+                ? Math.random() * 6 + 4
+                : Math.random() * 8 + 5;
 
             particle.style.left = `${x}px`;
             particle.style.top = `${y}px`;
@@ -304,10 +528,76 @@
 
             // Eliminar partícula después de la animación
             setTimeout(() => {
-              particle.remove();
+              if (particle.parentNode) {
+                particle.remove();
+              }
             }, duration * 1000);
           }
-        }, 200);
+        }, particleFrequency);
+      }
+
+      // Efecto de celebración extra cuando se guarda el puntaje
+      function createExtraParticles() {
+        const colors = ["#FFFF00", "#FF00FF", "#00FFFF", "#FF0000", "#00FF00"];
+
+        // Ajustar cantidad de partículas para dispositivos móviles
+        const particleCount = window.innerWidth < 600 ? 20 : 30;
+
+        // Crear una explosión de partículas
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement("div");
+          particle.className = "particle";
+
+          // Centrar en el área del formulario
+          const formRect = document
+            .getElementById("score-form")
+            .getBoundingClientRect();
+          const x = formRect.left + formRect.width / 2;
+          const y = formRect.top + formRect.height / 2;
+
+          // Color aleatorio
+          const color = colors[Math.floor(Math.random() * colors.length)];
+
+          // Tamaño aleatorio
+          const size = Math.random() * 12 + 8;
+
+          particle.style.left = `${x}px`;
+          particle.style.top = `${y}px`;
+          particle.style.backgroundColor = color;
+          particle.style.boxShadow = `0 0 15px ${color}`;
+          particle.style.width = `${size}px`;
+          particle.style.height = `${size}px`;
+
+          document.body.appendChild(particle);
+
+          // Animación de explosión
+          const angle = Math.random() * Math.PI * 2;
+          const velocity = Math.random() * 8 + 5;
+          const duration = Math.random() * 2 + 1;
+
+          particle.animate(
+            [
+              { transform: "translate(0, 0)", opacity: 1 },
+              {
+                transform: `translate(${Math.cos(angle) * velocity * 40}px, ${
+                  Math.sin(angle) * velocity * 40
+                }px)`,
+                opacity: 0,
+              },
+            ],
+            {
+              duration: duration * 1000,
+              easing: "cubic-bezier(0.1, 0.8, 0.2, 1)",
+            }
+          );
+
+          // Eliminar partícula después de la animación
+          setTimeout(() => {
+            if (particle.parentNode) {
+              particle.remove();
+            }
+          }, duration * 1000);
+        }
       }
 
       // Opcional: Efecto de sonido
@@ -324,6 +614,20 @@
       window.addEventListener("load", () => {
         createParticles();
         playVictorySound();
+        mostrarPuntajes();
+
+        // Si hubiera puntuación en el localStorage, borrarla una vez mostrada
+        if (localStorage.getItem("currentScore")) {
+          localStorage.removeItem("currentScore");
+        }
+      });
+
+      // Ajustar partículas cuando cambia el tamaño de la ventana
+      window.addEventListener("resize", () => {
+        // Limpiar partículas existentes
+        document.querySelectorAll(".particle").forEach((p) => p.remove());
+        // Reiniciar el efecto
+        createParticles();
       });
     </script>
   </body>
