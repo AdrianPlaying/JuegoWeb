@@ -130,6 +130,14 @@ let dialogoEnemigos10Mostrado = false;
 let dialogoJefe1Mostrado = false;
 let dialogoJefe2Mostrado = false;
 let goblinsFase = false; // Nueva variable para controlar la fase de goblins
+let mouseX = 0;
+let mouseY = 0;
+
+canvas.addEventListener("mousemove", (e) => {
+  const rect = canvas.getBoundingClientRect();
+  mouseX = e.clientX - rect.left;
+  mouseY = e.clientY - rect.top;
+});
 
 // ============================
 // Sistema de Diálogos
@@ -207,8 +215,8 @@ function crearJefe(numero) {
   let width = 200;
   let height = 200;
   if (numero === 2) {
-    width = 300;
-    height = 300;
+    width = 250;
+    height = 250;
   }
 
   jefeActual = {
@@ -216,11 +224,11 @@ function crearJefe(numero) {
     y: -200,
     width,
     height,
-    vida: numero === 1 ? 50 : 100,
-    vidaMaxima: numero === 1 ? 50 : 100,
+    vida: numero === 1 ? 175 : 225,
+    vidaMaxima: numero === 1 ? 175 : 225,
     speed: 1.5,
     imagen: numero === 1 ? jefe1Img : jefe2Img,
-    tipo: numero, // <- importante para saber si es jefe2
+    tipo: numero,
   };
 
   jefeActual.intervaloEmbestida = setInterval(jefeEmbestir, 7000);
@@ -281,12 +289,7 @@ document.addEventListener("keydown", (e) => {
   keys[e.key] = true;
 
   if (e.key === " ") {
-    if (player.dobleDisparo) {
-      player.bullets.push({ x: player.x + 10, y: player.y });
-      player.bullets.push({ x: player.x + player.width - 14, y: player.y });
-    } else {
-      player.bullets.push({ x: player.x + player.width / 2 - 2, y: player.y });
-    }
+    disparar();
   }
 
   if (e.key === "Escape" || e.key === "p") {
@@ -300,6 +303,64 @@ document.addEventListener("keydown", (e) => {
 document.addEventListener("keyup", (e) => {
   keys[e.key] = false;
 });
+
+// ============================
+// Disparo con Mouse
+// ============================
+canvas.addEventListener("mousedown", () => {
+  disparar();
+});
+
+// ============================
+// Función de Disparo
+// ============================
+function disparar() {
+  const origenX = player.x + player.width / 2;
+  const origenY = player.y + player.height / 2;
+
+  const dx = mouseX - origenX;
+  const dy = mouseY - origenY;
+  const distancia = Math.sqrt(dx * dx + dy * dy);
+
+  const velocidad = 10;
+  const vx = (dx / distancia) * velocidad;
+  const vy = (dy / distancia) * velocidad;
+
+  if (player.dobleDisparo) {
+    // Separación entre las dos balas
+    const separacion = 10;
+
+    // Bala izquierda
+    player.bullets.push({
+      x: origenX - separacion,
+      y: origenY,
+      width: 10,
+      height: 10,
+      vx,
+      vy,
+    });
+
+    // Bala derecha
+    player.bullets.push({
+      x: origenX + separacion,
+      y: origenY,
+      width: 10,
+      height: 10,
+      vx,
+      vy,
+    });
+  } else {
+    // Disparo único centrado
+    player.bullets.push({
+      x: origenX,
+      y: origenY,
+      width: 10,
+      height: 10,
+      vx,
+      vy,
+    });
+  }
+}
 
 // ============================
 // Generación de Enemigos
@@ -401,17 +462,33 @@ function update() {
   if (juegoPausado) return;
 
   // Movimiento jugador
-  if (keys["ArrowLeft"] && player.x > 0) player.x -= player.speed;
-  if (keys["ArrowRight"] && player.x + player.width < canvas.width)
+  if (keys["ArrowLeft"] || (keys["a"] && player.x > 0))
+    player.x -= player.speed;
+  if (
+    keys["ArrowRight"] ||
+    (keys["d"] && player.x + player.width < canvas.width)
+  )
     player.x += player.speed;
-  if (keys["ArrowUp"] && player.y > 0) player.y -= player.speed;
-  if (keys["ArrowDown"] && player.y + player.height < canvas.height)
+  if (keys["ArrowUp"] || (keys["w"] && player.y > 0)) player.y -= player.speed;
+  if (
+    keys["ArrowDown"] ||
+    (keys["s"] && player.y + player.height < canvas.height)
+  )
     player.y += player.speed;
 
   // Movimiento balas
   player.bullets.forEach((bullet, i) => {
-    bullet.y -= 10;
-    if (bullet.y < 0) player.bullets.splice(i, 1);
+    bullet.x += bullet.vx;
+    bullet.y += bullet.vy;
+
+    if (
+      bullet.x < 0 ||
+      bullet.x > canvas.width ||
+      bullet.y < 0 ||
+      bullet.y > canvas.height
+    ) {
+      player.bullets.splice(i, 1);
+    }
   });
 
   // Movimiento balas enemigas
@@ -588,13 +665,13 @@ function update() {
         }
 
         // Activar jefe
-        if (enemigosEliminados === 15 && !jefe1Activo && !jefe1Derrotado) {
+        if (enemigosEliminados === 50 && !jefe1Activo && !jefe1Derrotado) {
           jefe1Activo = true;
           detenerGeneracionEnemigos();
           crearJefe(1);
         }
 
-        if (enemigosEliminados >= 25 && jefe1Derrotado && !jefe2Activo) {
+        if (enemigosEliminados === 75 && jefe1Derrotado && !jefe2Activo) {
           jefe2Activo = true;
           detenerGeneracionEnemigos();
           crearJefe(2);
@@ -630,7 +707,7 @@ function update() {
         }
 
         // Activar jefe 2 después de eliminar suficientes goblins
-        if (enemigosEliminados >= 25 && jefe1Derrotado && !jefe2Activo) {
+        if (enemigosEliminados === 75 && jefe1Derrotado && !jefe2Activo) {
           jefe2Activo = true;
           detenerGeneracionEnemigos();
           crearJefe(2);
@@ -818,9 +895,11 @@ function draw() {
     ctx.stroke(); // Dibujar el borde
   }
 
-  ctx.fillStyle = "white";
   player.bullets.forEach((bullet) => {
-    ctx.fillRect(bullet.x, bullet.y, 4, 10);
+    ctx.fillStyle = "white";
+    ctx.beginPath();
+    ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2); // Radio de 5 píxeles
+    ctx.fill();
   });
 
   enemies.forEach((enemy) => {
